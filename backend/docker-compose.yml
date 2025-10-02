@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # Redis - Cache e broker do Celery
+  redis:
+    image: redis:7-alpine
+    container_name: redator-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - redator-network
+
+  # FastAPI Application
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: redator-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - redator-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Celery Worker - Re-treino automático
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: redator-worker
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - redator-network
+    command: celery -A workers.celery_app worker --loglevel=info
+
+  # Celery Beat - Scheduler para tarefas periódicas
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: redator-beat
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - redator-network
+    command: celery -A workers.celery_app beat --loglevel=info
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  redator-network:
+    driver: bridge
