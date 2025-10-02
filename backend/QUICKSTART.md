@@ -1,13 +1,13 @@
-# ⚡ Quickstart - Redator ENEM Backend
+# Quickstart - Redator ENEM Backend
 
 Guia rápido para rodar o sistema localmente em 5 minutos.
 
-## 🎯 Pré-requisitos
+## Pré-requisitos
 
 - Python 3.11+
 - Conta no [Supabase](https://supabase.com) (grátis)
 
-## 🚀 Passos
+## Passos
 
 ### 1. Setup Inicial
 
@@ -56,7 +56,7 @@ cd backend
 python training/train_initial.py
 ```
 
-⚠️ **Nota**: O treino leva ~2-4 horas. Para testar sem treinar, a API funcionará mas retornará erro ao tentar corrigir.
+ **Nota**: O treino leva ~2-4 horas. Para testar sem treinar, a API funcionará mas retornará erro ao tentar corrigir.
 
 ### 5. Iniciar API
 
@@ -64,9 +64,9 @@ python training/train_initial.py
 python main.py
 ```
 
-✅ API rodando em: http://localhost:8000
+ API rodando em: http://localhost:8000
 
-📚 Documentação: http://localhost:8000/docs
+ Documentação: http://localhost:8000/docs
 
 ## 🧪 Testar API
 
@@ -88,7 +88,7 @@ curl -X POST "http://localhost:8000/api/v1/correcao/corrigir" \
   }'
 ```
 
-## 🐳 Alternativa: Docker (Mais Fácil)
+## Alternativa: Docker (Mais Fácil)
 
 Se tiver Docker instalado:
 
@@ -105,7 +105,7 @@ docker-compose logs -f api
 
 API disponível em http://localhost:8000
 
-## ❓ Problemas Comuns
+## Problemas Comuns
 
 ### Erro: "Nenhum modelo carregado"
 - Você precisa treinar o modelo primeiro: `python training/train_initial.py`
@@ -119,7 +119,7 @@ API disponível em http://localhost:8000
 - Verifique se o ambiente virtual está ativado
 - Reinstale dependências: `pip install -r requirements.txt`
 
-## 📖 Próximos Passos
+## Próximos Passos
 
 - Ler [README.md](README.md) completo
 - Ver [documentação da API](http://localhost:8000/docs)
