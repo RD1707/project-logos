@@ -1,4 +1,10 @@
-# Redator ENEM - Backend API
+# Project Logos
+
+Logos (Λόγος)
+
+Significado: Uma palavra rica que significa "palavra", "razão", "discurso", "lógica".
+
+Conceito: É talvez a palavra que melhor encapsula a essência de uma redação. Refere-se tanto à palavra escrita quanto à lógica e à razão que estruturam o argumento. 
 
 Sistema de correção automática de redações ENEM com **auto-aprimoramento contínuo** usando BERTimbau e Machine Learning.
 
