@@ -1,8 +1,8 @@
-# 🎨 Redator ENEM - Frontend
+# Redator ENEM - Frontend
 
 Interface web moderna e minimalista para o sistema de correção automática de redações ENEM.
 
-## 🚀 Tecnologias
+## Tecnologias
 
 - **React 18** - Biblioteca UI
 - **Vite** - Build tool ultrarrápido
@@ -14,7 +14,7 @@ Interface web moderna e minimalista para o sistema de correção automática de 
 - **Axios** - Cliente HTTP
 - **Fonte Inter** - Tipografia moderna (Google Fonts)
 
-## 📦 Instalação
+## Instalação
 
 ```bash
 cd frontend
@@ -29,7 +29,7 @@ cp .env.example .env
 # VITE_API_URL=http://localhost:8000/api/v1
 ```
 
-## 🏃 Executar
+## Executar
 
 ```bash
 # Modo desenvolvimento
@@ -44,7 +44,7 @@ npm run preview
 
 Acesse: http://localhost:3000
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 frontend/
@@ -76,7 +76,7 @@ frontend/
 └── README.md          # Este arquivo
 ```
 
-## 🎨 Design System
+## Design System
 
 ### Cores
 
@@ -99,7 +99,7 @@ frontend/
 - **LoadingSpinner** - Com suporte a fullscreen
 - **ErrorMessage** - 3 variantes (error, warning, info)
 
-## 📄 Páginas
+## Páginas
 
 ### Home (Landing)
 - Hero section com CTA
@@ -138,7 +138,7 @@ GET /api/v1/modelo/metrics
 GET /api/v1/modelo/health
 ```
 
-## ✨ Features
+## Features
 
 - ✅ Design minimalista e elegante
 - ✅ Totalmente responsivo (mobile-first)
@@ -150,7 +150,7 @@ GET /api/v1/modelo/health
 - ✅ Acessível (ARIA labels)
 - ✅ Performance otimizada
 
-## 🎯 Fluxo de Uso
+## Fluxo de Uso
 
 1. **Landing Page** - Usuário conhece o sistema
 2. **Corrigir** - Usuário envia redação
@@ -162,7 +162,7 @@ GET /api/v1/modelo/health
    - Análise estrutural
 5. **Nova Correção** - Botão para corrigir outra
 
-## 🚢 Deploy
+## Deploy
 
 ### Build
 
@@ -199,7 +199,7 @@ O build gera arquivos estáticos em `dist/` prontos para deploy.
   COPY --from=builder /app/dist /usr/share/nginx/html
   ```
 
-## 🔧 Configuração de Proxy
+## Configuração de Proxy
 
 O Vite está configurado para fazer proxy das requisições `/api` para o backend:
 
@@ -215,7 +215,7 @@ server: {
 }
 ```
 
-## 📱 Responsividade
+## Responsividade
 
 O design é **mobile-first** e se adapta a todos os tamanhos de tela:
 
@@ -225,7 +225,7 @@ O design é **mobile-first** e se adapta a todos os tamanhos de tela:
 
 Todos os componentes são testados em diferentes resoluções.
 
-## 🎨 Customização
+## Customização
 
 ### Cores
 
@@ -257,7 +257,7 @@ fontFamily: {
 }
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Erro de CORS
 
@@ -284,5 +284,3 @@ Verifique se:
 MIT
 
 ---
-
-**Desenvolvido com ❤️ usando React e Tailwind CSS**
