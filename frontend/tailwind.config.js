@@ -11,6 +11,7 @@ export default {
       },
       colors: {
         primary: {
+          border: 'hsl(var(--border))',
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',
