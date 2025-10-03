@@ -1,9 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
-import { PenTool, Home, FileText } from 'lucide-react';
+import { PenTool, Home, FileText, LogIn, UserPlus, BookOpen } from 'lucide-react';
 import clsx from 'clsx';
+import { useAuth } from '../../contexts/AuthContext';
+import UserMenu from '../auth/UserMenu';
+import Button from '../ui/Button';
 
 export default function Header() {
   const location = useLocation();
+  const { isAuthenticated, loading } = useAuth();
 
   const isActive = (path) => location.pathname === path;
 
@@ -22,7 +26,7 @@ export default function Header() {
           </Link>
 
           {/* Navigation */}
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-2 sm:gap-4">
             <Link
               to="/"
               className={clsx(
@@ -33,7 +37,20 @@ export default function Header() {
               )}
             >
               <Home className="h-4 w-4" />
-              Início
+              <span className="hidden sm:inline">Início</span>
+            </Link>
+
+            <Link
+              to="/temas"
+              className={clsx(
+                'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                isActive('/temas')
+                  ? 'bg-primary-50 text-primary-600'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              )}
+            >
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Temas</span>
             </Link>
 
             <Link
@@ -46,8 +63,32 @@ export default function Header() {
               )}
             >
               <FileText className="h-4 w-4" />
-              Corrigir
+              <span className="hidden sm:inline">Corrigir</span>
             </Link>
+
+            {/* Auth Section */}
+            {!loading && (
+              <>
+                {isAuthenticated ? (
+                  <UserMenu />
+                ) : (
+                  <div className="flex items-center gap-2 ml-2">
+                    <Link to="/login">
+                      <Button variant="ghost" size="sm">
+                        <LogIn className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Entrar</span>
+                      </Button>
+                    </Link>
+                    <Link to="/registro">
+                      <Button size="sm">
+                        <UserPlus className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Criar conta</span>
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </>
+            )}
           </nav>
         </div>
       </div>

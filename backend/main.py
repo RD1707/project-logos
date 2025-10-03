@@ -8,7 +8,7 @@ from loguru import logger
 
 from app.core.config import settings, create_directories
 from app.core.logging import setup_logging
-from app.api.endpoints import correcao, modelo
+from app.api.endpoints import correcao, modelo, auth, usuario, temas
 
 # Setup logging
 setup_logging()
@@ -54,6 +54,24 @@ app.add_middleware(
 )
 
 # Incluir routers
+app.include_router(
+    auth.router,
+    prefix=f"{settings.API_V1_PREFIX}/auth",
+    tags=["Autenticação"]
+)
+
+app.include_router(
+    usuario.router,
+    prefix=f"{settings.API_V1_PREFIX}/usuario",
+    tags=["Usuário"]
+)
+
+app.include_router(
+    temas.router,
+    prefix=f"{settings.API_V1_PREFIX}/temas",
+    tags=["Temas ENEM"]
+)
+
 app.include_router(
     correcao.router,
     prefix=f"{settings.API_V1_PREFIX}/correcao",

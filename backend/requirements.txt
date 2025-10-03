@@ -35,6 +35,10 @@ aiofiles==23.2.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
+# PDF Generation
+reportlab==4.0.9
+pillow==10.2.0
+
 # Logging & Monitoring
 loguru==0.7.2
 

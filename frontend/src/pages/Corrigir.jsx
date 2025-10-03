@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Send, AlertCircle } from 'lucide-react';
+import { Send, AlertCircle, BookOpen, X } from 'lucide-react';
+import axios from 'axios';
 import Container from '../components/layout/Container';
 import Card, { CardBody, CardHeader } from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -12,14 +13,46 @@ import { contarCaracteres, contarPalavras, validarTextoRedacao } from '../utils/
 
 export default function Corrigir() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [texto, setTexto] = useState('');
   const [titulo, setTitulo] = useState('');
   const [errors, setErrors] = useState([]);
+  const [temaSelecionado, setTemaSelecionado] = useState(null);
+  const [loadingTema, setLoadingTema] = useState(false);
 
   const { mutate: corrigir, isPending, error } = useCorrigirRedacao();
 
   const caracteres = contarCaracteres(texto);
   const palavras = contarPalavras(texto);
+
+  // Carregar tema se vier da URL
+  useEffect(() => {
+    const temaId = searchParams.get('tema');
+    if (temaId) {
+      carregarTema(temaId);
+    }
+  }, [searchParams]);
+
+  const carregarTema = async (temaId) => {
+    try {
+      setLoadingTema(true);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/temas/${temaId}`);
+
+      if (response.data.success) {
+        setTemaSelecionado(response.data.tema);
+        setTitulo(response.data.tema.titulo);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar tema:', err);
+    } finally {
+      setLoadingTema(false);
+    }
+  };
+
+  const removerTema = () => {
+    setTemaSelecionado(null);
+    setSearchParams({});
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -38,6 +71,7 @@ export default function Corrigir() {
       {
         texto,
         titulo: titulo || null,
+        prompt_id: temaSelecionado?.id || null,
       },
       {
         onSuccess: (data) => {
@@ -72,6 +106,43 @@ export default function Corrigir() {
               Digite ou cole sua redação abaixo para receber correção completa
             </p>
           </div>
+
+          {/* Tema Selecionado */}
+          {temaSelecionado && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-primary-50 border-2 border-primary-200 rounded-lg p-6 mb-6"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-4 flex-1">
+                  <div className="bg-primary-600 p-3 rounded-lg">
+                    <BookOpen className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-primary-900">Tema Selecionado</h3>
+                      {temaSelecionado.ano && (
+                        <span className="text-xs bg-primary-200 text-primary-800 px-2 py-1 rounded">
+                          ENEM {temaSelecionado.ano}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-primary-800 font-medium mb-2">{temaSelecionado.titulo}</p>
+                    <p className="text-sm text-primary-700">{temaSelecionado.descricao}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={removerTema}
+                  className="p-2 hover:bg-primary-200 rounded-lg transition-colors"
+                  title="Remover tema"
+                >
+                  <X className="h-5 w-5 text-primary-700" />
+                </button>
+              </div>
+            </motion.div>
+          )}
 
           {/* Form */}
           <Card>

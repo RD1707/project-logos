@@ -146,3 +146,49 @@ class CorrecaoResponse(BaseModel):
     success: bool
     message: str
     correcao: Correcao
+
+
+class Comparacao(BaseModel):
+    """Schema para dados de uma correção na comparação"""
+
+    id: str
+    redacao_id: str
+    titulo: Optional[str] = None
+    score_total: int
+    c1: int
+    c2: int
+    c3: int
+    c4: int
+    c5: int
+    confianca: float
+    created_at: datetime
+    texto_preview: str = Field(..., description="Preview do texto (primeiros 200 caracteres)")
+
+
+class ComparacaoAnalise(BaseModel):
+    """Análise comparativa entre redações"""
+
+    melhor_score: str = Field(..., description="ID da correção com melhor score")
+    melhor_c1: str
+    melhor_c2: str
+    melhor_c3: str
+    melhor_c4: str
+    melhor_c5: str
+    media_scores: float = Field(..., description="Média dos scores totais")
+    diferencas: Dict[str, int] = Field(..., description="Diferenças entre scores")
+    insights: List[str] = Field(..., description="Insights sobre as diferenças")
+
+
+class CompararRequest(BaseModel):
+    """Request para comparar múltiplas correções"""
+
+    correcao_ids: List[str] = Field(..., min_length=2, max_length=5, description="IDs das correções (2-5)")
+
+
+class CompararResponse(BaseModel):
+    """Response para comparação de correções"""
+
+    success: bool
+    message: str
+    correcoes: List[Comparacao]
+    analise: ComparacaoAnalise

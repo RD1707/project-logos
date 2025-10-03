@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, FileText, AlertTriangle, CheckCircle2, Share2 } from 'lucide-react';
+import { ArrowLeft, FileText, AlertTriangle, CheckCircle2, Share2, Download, Copy, Check } from 'lucide-react';
 import Container from '../components/layout/Container';
 import Card, { CardBody, CardHeader } from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -9,11 +10,18 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ErrorMessage from '../components/ui/ErrorMessage';
 import ScoreGauge from '../components/correcao/ScoreGauge';
 import CompetenciaCard from '../components/correcao/CompetenciaCard';
-import { useBuscarCorrecao } from '../hooks/useCorrecao';
+import { useBuscarCorrecao, useExportarPDF, useCriarCompartilhamento } from '../hooks/useCorrecao';
+import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../utils/constants';
 
 export default function Resultado() {
   const { id } = useParams();
+  const { user } = useAuth();
   const { data, isLoading, error } = useBuscarCorrecao(id);
+  const { mutate: exportarPDF, isPending: exportandoPDF } = useExportarPDF();
+  const { mutate: criarShare, isPending: criandoShare, data: shareData } = useCriarCompartilhamento();
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [linkCopiado, setLinkCopiado] = useState(false);
 
   if (isLoading) {
     return <LoadingSpinner fullScreen size="xl" text="Carregando correção..." />;
@@ -58,6 +66,46 @@ export default function Resultado() {
     return 'danger';
   };
 
+  const handleExportarPDF = () => {
+    exportarPDF(id, {
+      onSuccess: (blob) => {
+        // Criar URL do blob e fazer download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `correcao_${id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+    });
+  };
+
+  const handleCompartilhar = () => {
+    criarShare(
+      {
+        correcaoId: id,
+        options: {
+          usuarioId: user?.id,
+          diasExpiracao: 7,
+        },
+      },
+      {
+        onSuccess: () => {
+          setShowShareModal(true);
+        },
+      }
+    );
+  };
+
+  const copiarLink = () => {
+    const link = `${window.location.origin}/compartilhado/${shareData?.token}`;
+    navigator.clipboard.writeText(link);
+    setLinkCopiado(true);
+    setTimeout(() => setLinkCopiado(false), 2000);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <Container>
@@ -80,12 +128,102 @@ export default function Resultado() {
               </p>
             </div>
 
-            <Button variant="outline">
-              <Share2 className="mr-2 h-4 w-4" />
-              Compartilhar
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleExportarPDF}
+                disabled={exportandoPDF}
+                loading={exportandoPDF}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Exportar PDF
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCompartilhar}
+                disabled={criandoShare}
+                loading={criandoShare}
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                Compartilhar
+              </Button>
+            </div>
           </div>
         </div>
+
+        {/* Modal de Compartilhamento */}
+        {showShareModal && shareData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            onClick={() => setShowShareModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-primary-100 p-3 rounded-full">
+                  <Share2 className="h-6 w-6 text-primary-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Link de Compartilhamento
+                </h3>
+              </div>
+
+              <p className="text-gray-600 mb-4">
+                Seu link foi criado com sucesso! Qualquer pessoa com este link poderá visualizar esta correção.
+              </p>
+
+              <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">Link:</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={copiarLink}
+                  >
+                    {linkCopiado ? (
+                      <>
+                        <Check className="h-4 w-4 mr-1" />
+                        Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 mr-1" />
+                        Copiar
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <div className="text-sm text-primary-600 break-all">
+                  {window.location.origin}/compartilhado/{shareData.token}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                <div>
+                  <div className="text-gray-600">Expira em:</div>
+                  <div className="font-medium">7 dias</div>
+                </div>
+                <div>
+                  <div className="text-gray-600">Visualizações:</div>
+                  <div className="font-medium">Ilimitadas</div>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => setShowShareModal(false)}
+                className="w-full"
+              >
+                Fechar
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
 
         {/* Score Principal */}
         <motion.div

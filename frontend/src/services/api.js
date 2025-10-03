@@ -124,4 +124,76 @@ export const healthCheck = async () => {
   }
 };
 
+/**
+ * Compara múltiplas correções
+ */
+export const compararCorrecoes = async (correcaoIds) => {
+  try {
+    const response = await api.post('/correcao/comparar', {
+      correcao_ids: correcaoIds
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Exporta correção em PDF
+ */
+export const exportarPDF = async (correcaoId) => {
+  try {
+    const response = await api.get(`/correcao/${correcaoId}/pdf`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Cria link de compartilhamento
+ */
+export const criarCompartilhamento = async (correcaoId, options = {}) => {
+  try {
+    const response = await api.post(`/correcao/${correcaoId}/compartilhar`, null, {
+      params: {
+        usuario_id: options.usuarioId,
+        dias_expiracao: options.diasExpiracao || 7,
+        max_visualizacoes: options.maxVisualizacoes
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Acessa correção compartilhada
+ */
+export const acessarCompartilhado = async (token) => {
+  try {
+    const response = await api.get(`/correcao/compartilhado/${token}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Revoga link de compartilhamento
+ */
+export const revogarCompartilhamento = async (token, usuarioId) => {
+  try {
+    const response = await api.delete(`/correcao/compartilhado/${token}`, {
+      params: { usuario_id: usuarioId }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;

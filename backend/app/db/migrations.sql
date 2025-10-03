@@ -1,18 +1,52 @@
 -- Migrations para criar tabelas no Supabase
 -- Execute este SQL no SQL Editor do Supabase
 
+-- ============= TABELA DE USUÁRIOS =============
+CREATE TABLE IF NOT EXISTS usuarios (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT UNIQUE NOT NULL,
+    nome TEXT NOT NULL,
+    senha_hash TEXT NOT NULL,
+    avatar_url TEXT,
+    bio TEXT,
+    tipo TEXT DEFAULT 'estudante' CHECK (tipo IN ('estudante', 'professor', 'admin')),
+    is_active BOOLEAN DEFAULT TRUE,
+    is_verified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Índices para performance
+CREATE INDEX idx_usuarios_email ON usuarios(email);
+CREATE INDEX idx_usuarios_tipo ON usuarios(tipo);
+CREATE INDEX idx_usuarios_created ON usuarios(created_at DESC);
+
+-- Função para atualizar updated_at automaticamente
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Trigger para atualizar updated_at em usuarios
+CREATE TRIGGER update_usuarios_updated_at BEFORE UPDATE ON usuarios
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- ============= TABELA DE REDAÇÕES =============
 CREATE TABLE IF NOT EXISTS redacoes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     texto TEXT NOT NULL,
     titulo TEXT,
     prompt_id INTEGER,
-    usuario_id TEXT,
+    usuario_id UUID REFERENCES usuarios(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Índices para performance
 CREATE INDEX idx_redacoes_usuario ON redacoes(usuario_id);
+CREATE INDEX idx_redacoes_prompt ON redacoes(prompt_id);
 CREATE INDEX idx_redacoes_created ON redacoes(created_at DESC);
 
 -- ============= TABELA DE CORREÇÕES =============
@@ -50,7 +84,7 @@ CREATE INDEX idx_correcoes_created ON correcoes(created_at DESC);
 CREATE TABLE IF NOT EXISTS feedback_humano (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     correcao_id UUID NOT NULL REFERENCES correcoes(id) ON DELETE CASCADE,
-    usuario_id TEXT NOT NULL,
+    usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
 
     -- Notas corretas dadas pelo humano
     c1_correta INTEGER CHECK (c1_correta >= 0 AND c1_correta <= 200),
@@ -91,8 +125,30 @@ CREATE TABLE IF NOT EXISTS prompts (
     descricao TEXT,
     ano INTEGER,
     origem TEXT,
+    categoria TEXT,
+    dificuldade TEXT DEFAULT 'medio' CHECK (dificuldade IN ('facil', 'medio', 'dificil')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Índices
+CREATE INDEX idx_prompts_ano ON prompts(ano DESC);
+CREATE INDEX idx_prompts_categoria ON prompts(categoria);
+CREATE INDEX idx_prompts_dificuldade ON prompts(dificuldade);
+
+-- ============= TABELA DE REFRESH TOKENS =============
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    token TEXT UNIQUE NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    revoked BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Índices
+CREATE INDEX idx_refresh_tokens_usuario ON refresh_tokens(usuario_id);
+CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token);
+CREATE INDEX idx_refresh_tokens_expires ON refresh_tokens(expires_at);
 
 -- ============= VIEWS ÚTEIS =============
 
@@ -122,6 +178,25 @@ FROM redacoes r
 JOIN correcoes c ON r.id = c.redacao_id
 JOIN feedback_humano f ON c.id = f.correcao_id
 WHERE f.score_correto IS NOT NULL;
+
+-- ============= TABELA DE COMPARTILHAMENTOS =============
+CREATE TABLE IF NOT EXISTS compartilhamentos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    correcao_id UUID NOT NULL REFERENCES correcoes(id) ON DELETE CASCADE,
+    usuario_id UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+    token TEXT UNIQUE NOT NULL,
+    expira_em TIMESTAMP WITH TIME ZONE,
+    visualizacoes INTEGER DEFAULT 0,
+    max_visualizacoes INTEGER,
+    is_ativo BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Índices para performance
+CREATE INDEX idx_compartilhamentos_token ON compartilhamentos(token);
+CREATE INDEX idx_compartilhamentos_correcao ON compartilhamentos(correcao_id);
+CREATE INDEX idx_compartilhamentos_usuario ON compartilhamentos(usuario_id);
+CREATE INDEX idx_compartilhamentos_expira ON compartilhamentos(expira_em);
 
 -- ============= ROW LEVEL SECURITY (RLS) =============
 -- Ative RLS nas tabelas conforme necessário
