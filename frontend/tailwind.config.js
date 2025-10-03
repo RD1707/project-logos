@@ -10,8 +10,8 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
+        border: '#e2e8f0', // Or any other color you prefer for borders
         primary: {
-          border: 'hsl(var(--border))',
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',
